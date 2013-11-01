@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Text;
 
 namespace Sabertooth.Lexicon {
@@ -28,6 +29,12 @@ namespace Sabertooth.Lexicon {
 		}
 		public void Restart() {
 			timeStart = DateTime.Now;
+		}
+	}
+
+	public static class LexiconHelpers {
+		public static string PathFromLocal(string local) {
+			return Path.Combine (Environment.CurrentDirectory, "Assets", local);
 		}
 	}
 }

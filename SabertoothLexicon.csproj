@@ -35,9 +35,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="MIME.cs" />
     <Compile Include="Common.cs" />
-    <Compile Include="BaseMandate.cs" />
     <Compile Include="Client.cs" />
     <Compile Include="Resource.cs" />
+    <Compile Include="Attributes.cs" />
+    <Compile Include="SiteBase.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

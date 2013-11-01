@@ -8,6 +8,7 @@ namespace Sabertooth.Lexicon {
 		public string Host;
 		public Statement[] Arguments;
 		public IPAddress IP;
+		public IStreamableContent[] Body;
 		public readonly TimeTracker RequestTime;
 		public ClientRequest() {
 			RequestTime = new TimeTracker ();
