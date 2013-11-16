@@ -40,7 +40,7 @@
     <Compile Include="Attributes.cs" />
     <Compile Include="SiteBase.cs" />
     <Compile Include="Restriction.cs" />
-    <Compile Include="Website.cs" />
+    <Compile Include="Authentication.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

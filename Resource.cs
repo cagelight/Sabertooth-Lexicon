@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
@@ -11,14 +12,15 @@ namespace Sabertooth.Lexicon {
 	/// </summary>
 	public interface IStreamable {bool IsLoaded {get;} byte[] GetBytes(); int GetSize(); void StreamTo(Stream S);}
 	public interface IStreamableContent : IStreamable {MIME Format {get;}}
-	public class HTMLResource : IStreamableContent {
+	public class WebpageResource : IStreamableContent {
 		public bool IsLoaded {get {return true;}}
 		public MIME Format {get{return MIME.HTML;}}
-		public HTMLResource() {
-
+		public Webpage Content;
+		public WebpageResource(Webpage WP) {
+			this.Content = WP;
 		}
 		public byte[] GetBytes() {
-			return null;
+			return Encoding.UTF8.GetBytes(this.Content.ToWebOptimizedString());
 		}
 		public int GetSize() {
 			return -1;
