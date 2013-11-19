@@ -16,11 +16,16 @@ namespace Sabertooth.Lexicon {
 		public bool IsLoaded {get {return true;}}
 		public MIME Format {get{return MIME.HTML;}}
 		public Webpage Content;
-		public WebpageResource(Webpage WP) {
+		public TimeTracker TT;
+		public WebpageResource(Webpage WP, TimeTracker TT = null) {
 			this.Content = WP;
+			this.TT = TT;
 		}
 		public byte[] GetBytes() {
-			return Encoding.UTF8.GetBytes(this.Content.ToWebOptimizedString());
+			string wp = this.Content.ToString ();
+			if (TT != null)
+				wp += String.Format ("<!-- {0}ms -->", TT.Mark.TotalMilliseconds);
+			return Encoding.UTF8.GetBytes(wp);
 		}
 		public int GetSize() {
 			return -1;

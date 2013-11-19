@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Web;
 
 using WebSharp;
 
@@ -57,13 +58,13 @@ namespace Sabertooth.Lexicon {
 			this.RequestTime = new TimeTracker ();
 			string[] requestLine = headerList [0].Split (' ');
 			this.type = requestLine[0];
-
-			int argindex = requestLine[1].IndexOf ('?');
-			if (argindex == -1 || argindex == requestLine[1].Length-1) {
-				this.path = requestLine[1];
+			string decpath = HttpUtility.UrlDecode (requestLine[1]); 
+			int argindex = decpath.IndexOf ('?');
+			if (argindex == -1 || argindex == decpath.Length-1) {
+				this.path = decpath;
 			} else {
-				string[] rawargs = requestLine[1].Substring(argindex+1).Split('&');
-				this.path = requestLine[1].Substring(0,argindex);
+				string[] rawargs = decpath.Substring(argindex+1).Split('&');
+				this.path = decpath.Substring(0,argindex);
 				foreach(string kvp in rawargs) {
 					if (kvp.Length < 3) {continue;}
 					string[] splitargs = kvp.Split('=');
