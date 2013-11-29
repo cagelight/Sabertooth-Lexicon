@@ -7,8 +7,8 @@ namespace Sabertooth.Lexicon {
 		protected readonly string AssetSubdir;
 		public SiteBase(string assetsubdir) {
 			this.AssetSubdir = Path.Combine (Environment.CurrentDirectory, "Assets", assetsubdir);
-			if (!Directory.Exists (assetsubdir))
-				Directory.CreateDirectory (assetsubdir);
+			if (!Directory.Exists (this.AssetSubdir))
+				Directory.CreateDirectory (this.AssetSubdir);
 		}
 		public virtual void Upkeep () {}
 		public abstract IStreamableContent Get(ClientRequest CR);

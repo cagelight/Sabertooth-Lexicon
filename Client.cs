@@ -15,19 +15,23 @@ namespace Sabertooth.Lexicon {
 		protected string type; public string Type { get{return type;} }
 		protected string path; public string Path { get{return path;} }
 		protected int contentlength = 0; public int ContentLength { get {return contentlength;} }
-		protected MIME contenttype = null; public MIME ContentType { get{return contenttype;} }
+		protected MIME contenttype ; public MIME ContentType { get{return contenttype;} }
 		protected string boundaryMultipart = String.Empty;
-		protected string host = null; public string Host {get {return host;}}
+		protected string host; public string Host {get {return host;}}
+		protected string[] sphost;
+		public string TLD {get {IPAddress g; return IPAddress.TryParse(host, out g) ? String.Empty : sphost [0];}}
+		public string Domain {get {IPAddress g; return IPAddress.TryParse(host, out g) ? String.Empty : sphost [1];}}
+		public string Subdomain {get {IPAddress g; return IPAddress.TryParse(host, out g) || sphost.Length < 3 ? String.Empty : sphost [2];}}
 		public Dictionary<string,string> Arguments = new Dictionary<string, string> ();
 		public Dictionary<string,string> headerDict = new Dictionary<string, string> ();
 		public Tuple<string, string> Authorization { get {
 				string b;
 				if (!headerDict.TryGetValue ("Authorization", out b) || !b.StartsWith("Basic ")) {
-					return null;
+					return new Tuple<string, string> (String.Empty, String.Empty);
 				}
 				string[] auth = Encoding.UTF8.GetString(Convert.FromBase64String (b.Substring(6))).Split(':');
 				if (auth.Length < 2)
-					return null;
+					return new Tuple<string, string> (String.Empty, String.Empty);
 				return new Tuple<string, string> (auth[0], auth[1]);
 			}}
 		public readonly TimeTracker RequestTime;
@@ -78,7 +82,7 @@ namespace Sabertooth.Lexicon {
 					this.headerDict [lineInstruction [0]] = lineInstruction [1];
 				}
 				switch(lineInstruction[0]) {
-					case "Content-Type":
+				case "Content-Type":
 					string boundary;
 					this.contenttype = MIME.FromText (lineInstruction [1], out boundary);
 					if (boundary != String.Empty)
@@ -87,12 +91,14 @@ namespace Sabertooth.Lexicon {
 					case "Content-Length":
 					this.contentlength = Convert.ToInt32 (lineInstruction [1]);
 					break;
-					case "Host":
+				case "Host":
 					this.host = lineInstruction [1];
+					this.sphost = this.host.Split ('.');
+					Array.Reverse (sphost);
 					break;
 				}
 			}
-			Console.WriteLine (this.Header);
+			//Console.WriteLine (this.Header);
 		}
 
 		public ClientBody ReadBody() {

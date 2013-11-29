@@ -18,8 +18,12 @@ namespace Sabertooth.Lexicon {
 		public Webpage Content;
 		public TimeTracker TT;
 		public WebpageResource(Webpage WP, TimeTracker TT = null) {
-			this.Content = WP;
-			this.TT = TT;
+			if (WP != null) {
+				this.Content = WP;
+				this.TT = TT;
+			} else {
+				throw new ArgumentNullException ("WebpageResource: Webpage WP argument is essential and cannot be null.");
+			}
 		}
 		public byte[] GetBytes() {
 			string wp = this.Content.ToString ();
@@ -32,7 +36,7 @@ namespace Sabertooth.Lexicon {
 		}
 		public void StreamTo(Stream S) {
 			MemoryStream MS = new MemoryStream (this.GetBytes());
-			MS.CopyTo (S, 4096);
+			MS.CopyTo (S, 32768);
 			S.Flush ();
 			MS.Close ();
 		}
@@ -53,7 +57,7 @@ namespace Sabertooth.Lexicon {
 		}
 		public void StreamTo(Stream S) {
 			MemoryStream MS = new MemoryStream (this.GetBytes());
-			MS.CopyTo (S, 4096);
+			MS.CopyTo (S, 32768);
 			S.Flush ();
 			MS.Close ();
 		}
@@ -76,7 +80,7 @@ namespace Sabertooth.Lexicon {
 		}
 		public void StreamTo(Stream S) {
 			MemoryStream MS = new MemoryStream (content);
-			MS.CopyTo (S, 4096);
+			MS.CopyTo (S, 32768);
 			S.Flush ();
 			MS.Close ();
 		}
@@ -101,7 +105,7 @@ namespace Sabertooth.Lexicon {
 		}
 		public void StreamTo(Stream S) {
 			FileStream FS = file.OpenRead ();
-			FS.CopyTo (S, 4096);
+			FS.CopyTo (S, 32768);
 			S.Flush ();
 			FS.Close ();
 		}
