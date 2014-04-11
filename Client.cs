@@ -22,7 +22,10 @@ namespace Sabertooth.Lexicon {
 		public string TLD {get {IPAddress g; return IPAddress.TryParse(host, out g) ? String.Empty : sphost [0];}}
 		public string Domain {get {IPAddress g; return IPAddress.TryParse(host, out g) ? String.Empty : sphost [1];}}
 		public string Subdomain {get {IPAddress g; return IPAddress.TryParse(host, out g) || sphost.Length < 3 ? String.Empty : sphost [2];}}
+		public readonly string ETag = string.Empty;
+		public readonly DateTime LastModified;
 		public Dictionary<string,string> Arguments = new Dictionary<string, string> ();
+		public Dictionary<string,string> Cookies = new Dictionary<string, string> ();
 		public Dictionary<string,string> headerDict = new Dictionary<string, string> ();
 		public Tuple<string, string> Authorization { get {
 				string b;
@@ -65,7 +68,7 @@ namespace Sabertooth.Lexicon {
 			string decpath = HttpUtility.UrlDecode (requestLine[1]); 
 			int argindex = decpath.IndexOf ('?');
 			if (argindex == -1 || argindex == decpath.Length-1) {
-				this.path = decpath;
+				this.path = decpath.Trim ('?');
 			} else {
 				string[] rawargs = decpath.Substring(argindex+1).Split('&');
 				this.path = decpath.Substring(0,argindex);
@@ -95,6 +98,14 @@ namespace Sabertooth.Lexicon {
 					this.host = lineInstruction [1];
 					this.sphost = this.host.Split ('.');
 					Array.Reverse (sphost);
+					break;
+				case "Cookie":
+					this.Cookies = lineInstruction[1].Split(new char[] {';'}, StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim().Split(new char[] {'='}, StringSplitOptions.None)).ToDictionary(x => x[0], x => x[1]);
+					break;
+				case "If-Modified-Since":
+					DateTime.TryParseExact (lineInstruction[1], "R", System.Globalization.DateTimeFormatInfo.CurrentInfo, System.Globalization.DateTimeStyles.AllowWhiteSpaces, out LastModified);
+				case "If-None-Match":
+					this.ETag = lineInstruction [1].Trim ('\"');
 					break;
 				}
 			}
@@ -181,6 +192,46 @@ namespace Sabertooth.Lexicon {
 				return null;
 			}
 		}
+		public string GetArgumentString() {
+			return "?" + String.Join ("&", this.Arguments.Select (x => String.Format ("{0}={1}", x.Key, x.Value)));
+		}
+		public string GetArgumentStringAddOverride(string key, string value) {
+			return "?" + String.Join("", this.Arguments.Where(x => x.Key != key).Select (x => String.Format ("{0}={1}&", x.Key, x.Value))) + String.Format("{0}={1}", key, value);
+		}
+		public string GetArgumentStringAddOverrideRemove(string key, string value, params string[] removekeys) {
+			return "?" + String.Join("", this.Arguments.Where(x => !removekeys.Contains(x.Key)).Where(x => x.Key != key).Select (x => String.Format ("{0}={1}&", x.Key, x.Value))) + String.Format("{0}={1}", key, value);
+		}
+		public string GetArgumentStringRemove(params string[] keys) {
+			return "?" + String.Join ("&", this.Arguments.Where(x => !keys.Contains(x.Key)).Select (x => String.Format ("{0}={1}", x.Key, x.Value)));
+		}
+		/// <summary>
+		/// Generates a string representing a new arguments list with one argument.
+		/// </summary>
+		/// <returns>The generated argument string.</returns>
+		/// <param name="key">Key</param>
+		/// <param name="value">Value</param>
+		public string GetArgumentStringNew(string key, string value) {
+			return "?" + String.Format("{0}={1}", key, value);
+		}
+		/// <summary>
+		/// Generates a string representing a new arguments list with one new argument, and the option of preserving some pairs from the previous arguments.
+		/// </summary>
+		/// <returns>The argument string new.</returns>
+		/// <param name="key">Key</param>
+		/// <param name="value">Value</param>
+		/// <param name="preserve">Keys to preserve.</param>
+		public string GetArgumentStringNew(string key, string value, params string[] preserve) {
+			return "?" + String.Join("", this.Arguments.Where(x => preserve.Contains(x.Key)).Select (x => String.Format ("{0}={1}&", x.Key, x.Value))) + String.Format("{0}={1}", key, value);
+		}
+		/// <summary>
+		/// Generates a string representing a new arguments list with a set of new arguments, and the option of preserving some pairs from the previous arguments.
+		/// </summary>
+		/// <returns>The argument string new.</returns>
+		/// <param name="keyvals">Set of new Key/Value pairs.</param>
+		/// <param name="preserve">Keys to preserve.</param>
+		public string GetArgumentStringNew(IEnumerable<KeyValuePair<string,string>> keyvals, params string[] preserve) {
+			return "?" + String.Join("", this.Arguments.Where(x => preserve.Contains(x.Key)).Select (x => String.Format ("{0}={1}&", x.Key, x.Value))) + String.Join("&", keyvals.Select(x => String.Format("{0}={1}", x.Key, x.Value)));
+		}
 	}
 
 	public class ClientBody {
@@ -192,10 +243,31 @@ namespace Sabertooth.Lexicon {
 	}
 
 	public class ClientReturn {
-		public IStreamableContent Body;
-		public Dictionary<string, string> SetCookies = new Dictionary<string, string> ();
+		protected IStreamableContent body;
+		public IStreamableContent Body {
+			get { return this.body; }
+			set { this.body = value; }
+		}
+		public List<SetCookie> SetCookies = new List<SetCookie> ();
+		public int MaxAge = 360;
+		public string Redirect;
+		public ClientReturn () {
+
+		}
 		public ClientReturn (IStreamableContent body) {
-			this.Body = body;
+			this.body = body;
+		}
+		public void RemoveRedirect() {
+			this.Redirect = null;
+		}
+	}
+
+	public class CacheData {
+		public int MaxAge = 360;
+		public DateTime LastModified;
+		public string ETag = String.Empty;
+		public CacheData() {
+
 		}
 	}
 }

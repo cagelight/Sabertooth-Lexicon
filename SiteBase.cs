@@ -11,9 +11,17 @@ namespace Sabertooth.Lexicon {
 				Directory.CreateDirectory (this.AssetSubdir);
 		}
 		public virtual void Upkeep () {}
-		public abstract IStreamableContent Get(ClientRequest CR);
-		public abstract IStreamableContent Post(ClientRequest CR, ClientBody CB);
+		public abstract ClientReturn Get(ClientRequest CR);
+		public abstract ClientReturn Post(ClientRequest CR, ClientBody CB);
 		public virtual bool IsAuthorized(ClientRequest CR, Tuple<string, string> auth, out string realm) {realm = "Authorize"; return true;}
+		public virtual CacheData GetCacheData(ClientRequest CR) {
+			CacheData CD = new CacheData ();
+			string path = Path.Combine (this.AssetSubdir, CR.Path.Trim ('.', ' ', Path.DirectorySeparatorChar));
+			if (File.Exists (path)) {
+				CD.LastModified = File.GetLastWriteTime(path);
+			}
+			return CD;
+		}
 		protected IStreamableContent OpenFile(string urlpath) {
 			string fullpath = Path.Combine (AssetSubdir, urlpath.Trim ('.', ' ', Path.DirectorySeparatorChar));
 			if (File.Exists (fullpath))
